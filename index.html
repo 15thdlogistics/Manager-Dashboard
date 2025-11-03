@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sky Party™ Manager Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300&family=Montserrat:wght@100;200;300;400&display=swap" rel="stylesheet">
+ 
+  <style>
+    body { background: #000; color: #fff; font-family: 'Montserrat', sans-serif; }
+    .oswald-thin { font-family: 'Oswald', sans-serif; font-weight: 200; letter-spacing: 0.15em; }
+    .montserrat-thin { font-family: 'Montserrat', sans-serif; font-weight: 200; letter-spacing: 0.3em; font-size: 0.9rem; }
+   
+    .shimmer-btn {
+      position: relative; overflow: hidden;
+      background: linear-gradient(90deg, #d4a017 0%, #fbbf24 50%, #d4a017 100%);
+      background-size: 200% 100%; animation: shimmer 3s ease-in-out infinite;
+      color: #000; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+      border: none; border-radius: 12px; padding: 14px 24px;
+      transition: all 0.3s ease; box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+    }
+    .shimmer-btn:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(251, 191, 36, 0.7); }
+    .shimmer-btn::before {
+      content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: shine 3s ease-in-out infinite;
+    }
+    @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    @keyframes shine { 0% { left: -100%; } 50% { left: 100%; } 100% { left: 100%; } }
+    .input-glow {
+      background: #111; border: 1px solid #333; color: #fff;
+      padding: 14px; border-radius: 10px; transition: all 0.3s ease;
+    }
+    .input-glow:focus { outline: none; border-color: #fbbf24; box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
+    .hidden { display: none; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4">
+  <div class="w-full max-w-md">
+    <!-- LOGO + TITLE -->
+    <div class="text-center mb-10">
+      <h1 class="oswald-thin text-5xl md:text-8xl tracking-widest text-white">
+        SKY PARTY
+      </h1>
+      <p class="montserrat-thin text-yellow-300 mt-2">
+        MANAGER DASHBOARD
+      </p>
+    </div>
+
+    <!-- AUTH CONTAINER -->
+    <div class="bg-zinc-900/80 backdrop-blur-sm p-8 rounded-2xl border border-zinc-800 shadow-2xl">
+
+      <!-- REQUEST INVITE FORM -->
+      <div id="requestInviteTab" class="space-y-5">
+        <p class="text-sm text-gray-300 text-center mb-6">
+          Access is by invitation only.
+        </p>
+        <input type="email" id="requestEmail" placeholder="YOUR EMAIL" class="w-full input-glow">
+        <select id="securityQuestion" class="w-full input-glow px-4 py-3">
+          <option value="">Select Security Question</option>
+        </select>
+        <input type="text" id="securityAnswer" placeholder="ANSWER" class="w-full input-glow">
+        <button onclick="requestInvite()" class="w-full shimmer-btn">
+          REQUEST INVITE
+        </button>
+        <p class="text-xs text-center text-gray-500 mt-4">
+          4 wrong answers = permanent lockout
+        </p>
+      </div>
+
+      <!-- INVITE CODE FORM -->
+      <div id="inviteCodeTab" class="space-y-5 hidden">
+        <p class="text-sm text-green-400 text-center">Invite sent! Check your email.</p>
+        <input type="email" id="inviteEmail" placeholder="EMAIL" class="w-full input-glow">
+        <input type="text" id="inviteCode" placeholder="INVITE CODE" class="w-full input-glow">
+        <button onclick="validateAndActivate()" class="w-full shimmer-btn">
+          ACTIVATE ACCOUNT
+        </button>
+      </div>
+
+      <!-- OTP LOGIN -->
+      <div id="otpLoginTab" class="space-y-5 hidden">
+        <input type="email" id="loginEmail" placeholder="EMAIL" class="w-full input-glow">
+        <button onclick="sendOTP()" class="w-full shimmer-btn">
+          SEND OTP
+        </button>
+        <input type="text" id="otpCode" placeholder="6-digit OTP" class="w-full input-glow mt-3" maxlength="6">
+        <button onclick="verifyOTP()" class="w-full shimmer-btn mt-2">
+          VERIFY & LOGIN
+        </button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="mt-10 hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-zinc-900 p-5 rounded-xl text-center border border-zinc-800">
+          <p class="text-yellow-400 text-xs montserrat-thin tracking-widest">TOTAL PAYMENTS</p>
+          <p id="totalAllocated" class="text-2xl font-bold mt-1">₦0</p>
+        </div>
+        <div class="bg-zinc-900 p-5 rounded-xl text-center border border-zinc-800">
+          <p class="text-yellow-400 text-xs montserrat-thin tracking-widest">PENDING PAYOUT</p>
+          <p id="pendingPayout" class="text-2xl font-bold mt-1">₦0</p>
+        </div>
+        <div class="bg-zinc-900 p-5 rounded-xl text-center border border-zinc-800">
+          <p class="text-yellow-400 text-xs montserrat-thin tracking-widest">COMMISSION RATE</p>
+          <p id="commissionRate" class="text-xl mt-1">0%</p>
+        </div>
+      </div>
+      <button onclick="requestPayout()" class="w-full shimmer-btn py-4 text-lg">
+        REQUEST PAYOUT
+      </button>
+    </div>
+  </div>
+
+  <!-- FRONTEND: QUESTIONS ONLY. ANSWERS IN BACKEND -->
+  <script>
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwCIlJeEAUPwjWwiGG1fLmxAgzG3cHjjFCmac5KxMziBpf_uToxLLtaIR1HnIG-mC3miw/exec";
+
+    // EMBEDDED QUESTIONS (NO ANSWERS)
+    const QUESTIONS = [
+      "What is the name of the first Sky Party™ flight?",
+      "Who hosted the inaugural Sky Party™?",
+      "What is the tail number of the Sky Party™ jet?",
+      "What color is the Sky Party™ jet interior?",
+      "Which city hosted Sky Party™ Season 1?",
+      "What is the name of the Sky Party™ private lounge?",
+      "What is the official Sky Party™ hashtag?",
+      "Which artist performed at Sky Party™ Launch?",
+      "What is the Sky Party™ dress code?",
+      "What is the maximum altitude of a Sky Party™ flight?"
+    ];
+
+    window.onload = () => {
+      const select = document.getElementById('securityQuestion');
+      QUESTIONS.forEach(q => {
+        const opt = document.createElement('option');
+        opt.value = q;
+        opt.textContent = q;
+        select.appendChild(opt);
+      });
+    };
+
+    function requestInvite() {
+      const email = document.getElementById('requestEmail').value.trim();
+      const question = document.getElementById('securityQuestion').value;
+      const answer = document.getElementById('securityAnswer').value.trim();
+
+      if (!email || !question || !answer) return alert("All fields required");
+
+      fetch(`${BACKEND_URL}?action=requestInvite`, {
+        method: 'POST',
+        body: JSON.stringify({ email, question, answer })
+      })
+      .then(r => r.json())
+      .then(res => {
+        alert(res.message);
+        if (res.status === "success") {
+          document.getElementById('requestInviteTab').classList.add('hidden');
+          document.getElementById('inviteCodeTab').classList.remove('hidden');
+          document.getElementById('inviteEmail').value = email;
+        }
+      })
+      .catch(() => alert("Network error. Try again."));
+    }
+
+    function validateAndActivate() {
+      const email = document.getElementById('inviteEmail').value.trim();
+      const code = document.getElementById('inviteCode').value.trim();
+      if (!code) return alert("Enter your invite code");
+
+      fetch(`${BACKEND_URL}?action=validateInvite`, {
+        method: 'POST',
+        body: JSON.stringify({ email, code })
+      })
+      .then(r => r.json())
+      .then(res => {
+        if (res.status !== "success") return alert(res.message);
+
+        const password = prompt("Set your password:");
+        const pin = prompt("Set 6-digit PIN (e.g., 123456):");
+        if (!password || !pin || pin.length !== 6 || isNaN(pin)) return alert("Invalid password or PIN");
+
+        fetch(`${BACKEND_URL}?action=activateAccount`, {
+          method: 'POST',
+          body: JSON.stringify({ email, code, password, pin })
+        })
+        .then(r => r.json())
+        .then(res => {
+          alert(res.message);
+          if (res.status === "success") {
+            document.getElementById('inviteCodeTab').classList.add('hidden');
+            document.getElementById('otpLoginTab').classList.remove('hidden');
+            document.getElementById('loginEmail').value = email;
+          }
+        });
+      });
+    }
+
+    function sendOTP() {
+      const email = document.getElementById('loginEmail').value.trim();
+      if (!email) return alert("Enter your email");
+
+      fetch(`${BACKEND_URL}?action=sendOTP`, {
+        method: 'POST',
+        body: JSON.stringify({ email })
+      })
+      .then(r => r.json())
+      .then(res => alert(res.message || "OTP sent!"));
+    }
+
+    function verifyOTP() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const otp = document.getElementById('otpCode').value.trim();
+      if (!otp || otp.length !== 6) return alert("Enter 6-digit OTP");
+
+      fetch(`${BACKEND_URL}?action=verifyOTP`, {
+        method: 'POST',
+        body: JSON.stringify({ email, otp })
+      })
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === "success") {
+          document.getElementById('otpLoginTab').classList.add('hidden');
+          document.getElementById('dashboard').classList.remove('hidden');
+        } else {
+          alert(res.message);
+        }
+      });
+    }
+
+    function requestPayout() {
+      const pin = prompt("Enter 6-digit PIN to confirm payout:");
+      if (!pin || pin.length !== 6 || isNaN(pin)) return alert("Invalid PIN");
+      alert("Payout requested! Awaiting admin approval.");
+    }
+  </script>
+</body>
+</html>
